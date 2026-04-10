@@ -300,7 +300,7 @@ struct MoodView: View {
             4. A closing intention or prayer
             Be mystical, practical, and deeply attuned to this emotional state.
             """
-            let result = await AIService.callClaude(prompt: prompt, maxTokens: 500)
+            let result = await AIService.callOpenRouter(prompt: prompt, maxTokens: 500)
             await MainActor.run {
                 ritualText = result
                 isLoadingRitual = false
@@ -318,7 +318,7 @@ struct MoodView: View {
             Acknowledge the feeling, transmute it into power, end with a cosmic declaration.
             3 sentences max. Begin with "I".
             """
-            let result = await AIService.callClaude(prompt: prompt, maxTokens: 120)
+            let result = await AIService.callOpenRouter(prompt: prompt, maxTokens: 120)
             await MainActor.run {
                 affirmation = result
                 isLoadingAffirmation = false

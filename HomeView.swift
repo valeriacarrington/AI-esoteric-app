@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @EnvironmentObject var profile: UserProfile
+    @EnvironmentObject var store: AppStore
     @State private var reading = ""
     @State private var readingLines: [String] = []
     @State private var isLoading = false
@@ -18,6 +19,7 @@ struct HomeView: View {
     @State private var weeklyForecast = ""
     @State private var isLoadingWeekly = false
     @State private var showWeekly = false
+    @State private var showPaywall = false
 
     let zodiacSigns = ["Aries ♈","Taurus ♉","Gemini ♊","Cancer ♋","Leo ♌","Virgo ♍",
                        "Libra ♎","Scorpio ♏","Sagittarius ♐","Capricorn ♑","Aquarius ♒","Pisces ♓"]
@@ -129,7 +131,28 @@ struct HomeView: View {
                     loadingLabel: "Reading the stars...",
                     color1: "7c3aed", color2: "5b21b6"
                 ) { fetchReading() }
-                .padding(.horizontal, 20).padding(.bottom, 28)
+                .padding(.horizontal, 20).padding(.bottom, 16)
+
+                // ── Pricing plans button ──
+                Button(action: { showPaywall = true }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 11))
+                            .foregroundColor(Color(hex: "fbbf24"))
+                        Text("VIEW PRICING PLANS")
+                            .font(.system(size: 11, weight: .medium))
+                            .tracking(2)
+                            .foregroundColor(Color(hex: "fbbf24"))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color(hex: "fbbf24").opacity(0.08))
+                    .cornerRadius(16)
+                    .overlay(RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color(hex: "fbbf24").opacity(0.25), lineWidth: 1))
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 28)
 
                 // ── Quick action cards ──
                 SectionHeader(icon: "wand.and.stars", title: "COSMIC TOOLS")
@@ -137,28 +160,24 @@ struct HomeView: View {
 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
 
-                    // Lucky numbers & colors
                     QuickActionCard(
                         icon: "🍀", title: "Lucky Today",
                         subtitle: "Numbers · Colors · Hours",
                         isLoading: isLoadingLucky
                     ) { fetchLucky() }
 
-                    // Weekly forecast
                     QuickActionCard(
                         icon: "📅", title: "Week Ahead",
                         subtitle: "7-day cosmic forecast",
                         isLoading: isLoadingWeekly
                     ) { fetchWeekly() }
 
-                    // Compatibility
                     QuickActionCard(
                         icon: "💫", title: "Compatibility",
                         subtitle: "Check sign synergy",
                         isLoading: false
                     ) { withAnimation { showCompat.toggle() } }
 
-                    // Affirmation
                     QuickActionCard(
                         icon: "✨", title: "Affirmation",
                         subtitle: "Daily cosmic mantra",
@@ -281,6 +300,10 @@ struct HomeView: View {
             .padding(.top, 8)
         }
         .onAppear { orbPulse = true }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+                .environmentObject(store)
+        }
     }
 
     // MARK: - AI Calls
@@ -313,7 +336,7 @@ struct HomeView: View {
             - One crystal or stone to carry today
             Format beautifully, use line breaks between sections. Be mystical and specific.
             """
-            let result = await AIService.callClaude(prompt: prompt, maxTokens: 400)
+            let result = await AIService.callOpenRouter(prompt: prompt, maxTokens: 400)
             await MainActor.run {
                 luckyResult = result; isLoadingLucky = false
                 withAnimation(.spring()) { showLucky = true }
@@ -332,7 +355,7 @@ struct HomeView: View {
             Then add: this week's theme (one phrase), biggest opportunity, and one warning.
             Be poetic, specific to \(user.zodiacSign), and deeply insightful.
             """
-            let result = await AIService.callClaude(prompt: prompt, maxTokens: 600)
+            let result = await AIService.callOpenRouter(prompt: prompt, maxTokens: 600)
             await MainActor.run {
                 weeklyForecast = result; isLoadingWeekly = false
                 withAnimation(.spring()) { showWeekly = true }
@@ -358,7 +381,7 @@ struct HomeView: View {
             
             Be mystical, nuanced, and beautiful in language.
             """
-            let result = await AIService.callClaude(prompt: prompt, maxTokens: 500)
+            let result = await AIService.callOpenRouter(prompt: prompt, maxTokens: 500)
             await MainActor.run {
                 compatibilityResult = result; isLoadingCompat = false
             }
@@ -369,12 +392,12 @@ struct HomeView: View {
         guard let user = profile.currentUser else { return }
         Task {
             let prompt = """
-            Create one powerful, poetic daily affirmation specifically for \(user.zodiacSign) 
+            Create one powerful, poetic daily affirmation specifically for \(user.zodiacSign)
             ruled by \(user.planet), element \(user.element).
             The affirmation should be 2-3 sentences, deeply personal to this sign's strengths.
             Begin with "I" and make it feel like a cosmic declaration.
             """
-            let result = await AIService.callClaude(prompt: prompt, maxTokens: 150)
+            let result = await AIService.callOpenRouter(prompt: prompt, maxTokens: 150)
             await MainActor.run {
                 withAnimation {
                     readingLines = [result, "AFFIRM"]

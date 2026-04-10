@@ -184,7 +184,7 @@ struct NumerologyView: View {
             4. A message from their higher self
             Be mystical, profound, and compassionate.
             """
-            let result = await AIService.callClaude(prompt: prompt, maxTokens: 600)
+            let result = await AIService.callOpenRouter(prompt: prompt, maxTokens: 600)
             await MainActor.run {
                 karmaResult = result; isLoadingKarma = false
                 withAnimation(.spring()) { showKarma = true }
@@ -201,7 +201,7 @@ struct NumerologyView: View {
             Cover: overall theme, focus areas, biggest opportunity, what to release, and a mantra.
             Be specific, insightful, and cosmic in tone.
             """
-            let result = await AIService.callClaude(prompt: prompt, maxTokens: 500)
+            let result = await AIService.callOpenRouter(prompt: prompt, maxTokens: 500)
             await MainActor.run {
                 personalYearResult = result; isLoadingYear = false
                 withAnimation(.spring()) { showYear = true }
@@ -219,7 +219,7 @@ struct NumerologyView: View {
             Cover: vibrational frequency, energy broadcast, hidden power, alignment with zodiac,
             and one word capturing its essence. Be mystical and deeply personal.
             """
-            let result = await AIService.callClaude(prompt: prompt, maxTokens: 400)
+            let result = await AIService.callOpenRouter(prompt: prompt, maxTokens: 400)
             await MainActor.run {
                 nameAnalysis = result; isLoadingName = false
                 withAnimation(.spring()) { showName = true }

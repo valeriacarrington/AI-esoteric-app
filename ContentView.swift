@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var selectedTab: AppTab = .home
     @State private var showMenu = false
     @State private var menuDragOffset: CGFloat = 0
+    @State private var showPaywall = false
 
     var body: some View {
         ZStack {
@@ -29,6 +30,7 @@ struct ContentView: View {
                             case .home:
                                 HomeView()
                                     .environmentObject(profile)
+                                    .environmentObject(store)  // ← store passed here
                                     .transition(.opacity)
                             case .mood:
                                 MoodView()
@@ -76,25 +78,29 @@ struct ContentView: View {
                                 }
                             }
 
-                        SideMenuView(showMenu: $showMenu, selectedTab: $selectedTab)
-                            .environmentObject(profile)
-                            .environmentObject(store)
-                            .offset(x: menuDragOffset)
-                            .transition(.move(edge: .leading))
-                            .gesture(
-                                DragGesture()
-                                    .onChanged { v in
-                                        if v.translation.width < 0 {
-                                            menuDragOffset = v.translation.width
-                                        }
+                        SideMenuView(
+                            showMenu: $showMenu,
+                            selectedTab: $selectedTab,
+                            showPaywall: $showPaywall
+                        )
+                        .environmentObject(profile)
+                        .environmentObject(store)
+                        .offset(x: menuDragOffset)
+                        .transition(.move(edge: .leading))
+                        .gesture(
+                            DragGesture()
+                                .onChanged { v in
+                                    if v.translation.width < 0 {
+                                        menuDragOffset = v.translation.width
                                     }
-                                    .onEnded { v in
-                                        if v.translation.width < -80 {
-                                            withAnimation(.spring()) { showMenu = false }
-                                        }
-                                        menuDragOffset = 0
+                                }
+                                .onEnded { v in
+                                    if v.translation.width < -80 {
+                                        withAnimation(.spring()) { showMenu = false }
                                     }
-                            )
+                                    menuDragOffset = 0
+                                }
+                        )
                     }
                 }
                 .transition(.asymmetric(
@@ -105,6 +111,10 @@ struct ContentView: View {
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.85), value: profile.isLoggedIn)
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+                .environmentObject(store)
+        }
     }
 }
 
@@ -342,6 +352,7 @@ struct BottomTabBar: View {
 struct SideMenuView: View {
     @Binding var showMenu: Bool
     @Binding var selectedTab: AppTab
+    @Binding var showPaywall: Bool
     @EnvironmentObject var profile: UserProfile
     @EnvironmentObject var store: AppStore
 
@@ -383,7 +394,12 @@ struct SideMenuView: View {
                     }
 
                     if !store.isPremium {
-                        Button(action: { store.unlock(); showMenu = false }) {
+                        Button(action: {
+                            withAnimation(.spring()) { showMenu = false }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                showPaywall = true
+                            }
+                        }) {
                             HStack(spacing: 6) {
                                 Image(systemName: "crown.fill").font(.system(size: 10))
                                 Text("Unlock Premium")

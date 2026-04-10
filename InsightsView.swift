@@ -308,7 +308,7 @@ struct InsightsView: View {
               "meaning": "3-4 sentences interpreting this card specifically for a \(zodiac). Include the card's energy, what it reveals about today, and one action or awareness it calls for. Be mystical and personal."
             }
             """
-            let raw = await AIService.callClaude(prompt: prompt, maxTokens: 300)
+            let raw = await AIService.callOpenRouter(prompt: prompt, maxTokens: 300)
             await MainActor.run {
                 if let data = raw.data(using: .utf8),
                    let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -342,7 +342,7 @@ struct InsightsView: View {
             
             Be specific, mystical, and actionable.
             """
-            let result = await AIService.callClaude(prompt: prompt, maxTokens: 300)
+            let result = await AIService.callOpenRouter(prompt: prompt, maxTokens: 300)
             await MainActor.run {
                 planetResult = result; isLoadingPlanet = false
                 withAnimation(.spring()) { showPlanet = true }
@@ -363,7 +363,7 @@ struct InsightsView: View {
             offer an astrological insight, and end with an empowering question for them to sit with.
             Be warm, mystical, and deeply personal.
             """
-            let reflection = await AIService.callClaude(prompt: prompt, maxTokens: 200)
+            let reflection = await AIService.callOpenRouter(prompt: prompt, maxTokens: 200)
             await MainActor.run {
                 let entry = JournalEntry(
                     text: journalText,
@@ -430,7 +430,6 @@ struct MoonPhaseCard: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 20) {
-                // Moon display
                 ZStack {
                     Circle()
                         .fill(Color(hex: "1e1b4b").opacity(0.8))
@@ -458,7 +457,6 @@ struct MoonPhaseCard: View {
             }
             .padding(20)
 
-            // Moon cycle progress bar
             VStack(spacing: 8) {
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
@@ -520,7 +518,6 @@ struct EnergyCard: View {
                 .font(.system(size: 13, weight: .medium))
                 .foregroundColor(.white)
 
-            // Progress bar
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 3)
@@ -721,7 +718,7 @@ struct CosmicTipCard: View {
             It should be 1-2 sentences, poetic, actionable, and deeply specific to \(zodiac) energy.
             No fluff. Make it land like a revelation.
             """
-            let result = await AIService.callClaude(prompt: prompt, maxTokens: 100)
+            let result = await AIService.callOpenRouter(prompt: prompt, maxTokens: 100)
             await MainActor.run { tip = result; isLoading = false; loaded = true }
         }
     }
@@ -731,10 +728,4 @@ extension Calendar {
     func component(_ component: Calendar.Component, from date: Date) -> Int {
         self.dateComponents([component], from: date).value(for: component) ?? 0
     }
-}//
-//  InsightsView.swift
-//  AstralVeil
-//
-//  Created by Tania on 23.03.2026.
-//
-
+}
